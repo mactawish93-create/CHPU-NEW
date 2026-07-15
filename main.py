@@ -8,7 +8,7 @@ from interface import CNCMainWindow
 # Импортируем независимые модули обработки изделий и CAM-инструментов
 from modules import pipes 
 from modules import gcode_viewer
-from modules import editor
+from modules.editor_sub import editor
 from modules import disks_router
 
 class MainController:
@@ -95,6 +95,11 @@ class MainController:
         self.ui.canvas.unbind("<ButtonRelease-1>")
         self.ui.canvas.unbind("<Button-3>")
         self.ui.canvas.unbind("<MouseWheel>")
+        # Восстанавливаем левую панель, если она была скрыта редактором
+        if hasattr(self.ui, 'left_column') and self.ui.left_column:
+            # Проверяем, не упакована ли колонка прямо сейчас
+            if not self.ui.left_column.winfo_manager():
+                self.ui.left_column.pack(side=tk.LEFT, fill=tk.Y, padx=5, pady=5)
 
     def on_generate_click(self):
         """Клик по нижней левой кнопке генерации кода"""
