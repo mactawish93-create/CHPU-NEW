@@ -25,12 +25,28 @@ def load_editor_interface(params_frame, canvas, controller):
     if hasattr(parent_frame, 'toolbar_frame'):
         parent_frame.toolbar_frame.destroy()
 
-    # 3. Создаем верхний Toolbar и возвращаем под него Canvas
-    toolbar = tk.Frame(parent_frame, bg="#eaeaea", bd=1, relief=tk.GROOVE)
+    # 3. ЭТАЛОННАЯ CAD-СБОРКА: Размещаем тулбар строго в правой колонке над холстом
+    canvas_master = canvas.master
+    toolbar = tk.Frame(canvas_master, bg="#eaeaea", bd=1, relief=tk.GROOVE)
+    
+    # Сначала отвязываем сам холст, чтобы упаковать тулбар ПЕРВЫМ на самый верх
+    canvas.pack_forget()
+    
+    # Упаковываем графический тулбар наверх над холстом (он встанет ровно и красиво)
     toolbar.pack(side=tk.TOP, fill=tk.X, padx=5, pady=(2, 2))
     parent_frame.toolbar_frame = toolbar 
 
+    # Возвращаем чертежный холст обратно, теперь он встанет строго ПОД иконками!
     canvas.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+    # СКРЫТЫЙ ТРЕКЕР-ЛИКВИДАТОР: Создается строго внутри левой панели параметров params_frame!
+    # Он геометрически невидим, но живет в памяти левой панели
+    tracker = tk.Frame(parent_frame)
+    tracker.pack_forget() # Прячем, чтобы не ломать отступы левой колонки
+    
+    # Железобетонная CAD-привязка: как только main.py принудительно вызовет .destroy() 
+    # для левой панели параметров, этот трекер погибнет и СРАЗУ уничтожит тулбар в правой колонке!
+    tracker.bind("<Destroy>", lambda e: toolbar.destroy() if toolbar.winfo_exists() else None)
 
     # 4. Считываем реальные размеры экрана
     canvas.update_idletasks()
